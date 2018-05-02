@@ -34,6 +34,8 @@ import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
 import com.firebase.geofire.GeoQuery;
 import com.firebase.geofire.GeoQueryEventListener;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -42,6 +44,7 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -66,6 +69,7 @@ public class MainActivity extends AppCompatActivity
     private GeoFire geoFire;
     private DatabaseReference mDatabaseReference;
     private DatabaseReference gDatabaseReference;
+    private FusedLocationProviderClient mFusedLocationClient;
 
     private static final int LOCATION_REQUEST = 500;
 
@@ -92,11 +96,11 @@ public class MainActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
 
         firebaseAuth = FirebaseAuth.getInstance();
-
         mDatabaseReference = FirebaseDatabase.getInstance().getReference("AllParkingSlots");
         gDatabaseReference = FirebaseDatabase.getInstance().getReference("GeoFire");
         geoFire = new GeoFire(gDatabaseReference);
 
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         //populateDatabase();
         mapInit();
@@ -111,18 +115,35 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
+        LatLng currentLat;
         mMap = googleMap;
 
         Criteria criteria = new Criteria();
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
-        Location location = locationManager.getLastKnownLocation(locationManager
-                .getBestProvider(criteria, false));
-        currentLoc = new LatLng(location.getLatitude(), location.getLongitude());
 
-        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(currentLoc, 10);
-        mMap.animateCamera(cameraUpdate);
+        mFusedLocationClient.getLastLocation()
+                .addOnSuccessListener(this, new OnSuccessListener<Location>() {
+                    @Override
+                    public void onSuccess(Location location) {
+                        // Got last known location. In some rare situations this can be null.
+                        if (location != null) {
+                            // Logic to handle location object
+                            currentLoc = new LatLng(location.getLatitude(), location.getLongitude());
+                            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(currentLoc, 10);
+                            mMap.animateCamera(cameraUpdate);
+                        }
+                    }
+                });
+
+
+
+        /*Location location = locationManager.getLastKnownLocation(locationManager
+                .getBestProvider(criteria, false));*/
+        //currentLoc = new LatLng(location.getLatitude(), location.getLongitude());
+
+
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[] {android.Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_REQUEST);
             return;
@@ -130,6 +151,7 @@ public class MainActivity extends AppCompatActivity
         mMap.setMyLocationEnabled(true);
         mMap.getUiSettings().setMyLocationButtonEnabled(true);
         mMap.getUiSettings().setZoomControlsEnabled(true);
+
         initialMarker();
 
         mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
@@ -167,6 +189,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void bookSlot(Marker marker, String key){
+        myParkingSpot = new LatLng(marker.getPosition().latitude, marker.getPosition().longitude);
         DatabaseReference temp = FirebaseDatabase.getInstance().getReference("AllParkingSlots").child(key);
         ParkingSlot update = new ParkingSlot(marker.getPosition().latitude, marker.getPosition().longitude, false);
         temp.setValue(update);
@@ -179,8 +202,9 @@ public class MainActivity extends AppCompatActivity
             LatLng pos;
             @Override
             public void onKeyEntered(String key, GeoLocation location) {
-                if(nearByLoc.contains(key)){
-                    addMarker(location, key);
+                if(myParkingSpot == null)
+                    if(nearByLoc.contains(key)){
+                        addMarker(location, key);
                 }
             }
             @Override
@@ -310,7 +334,8 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         if (id == R.id.nav_camera) {
-            // Handle the camera action
+            Intent intent = new Intent(this, TimeSelect.class);
+            startActivity(intent);
         } else if (id == R.id.nav_gallery) {
 
         } else if (id == R.id.nav_slideshow) {
