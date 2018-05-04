@@ -10,7 +10,7 @@ import java.util.Calendar;
 
 public class History {
 
-    public static void addToHistory(LatLng dest){
+    public static void addToHistory(LatLng dest, String price){
         FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
         String uID = firebaseAuth.getUid();
         DatabaseReference mDatabaseReference = FirebaseDatabase.getInstance().getReference("UserHistory").child(uID);
@@ -20,7 +20,7 @@ public class History {
         SimpleDateFormat dateformat = new SimpleDateFormat("dd-MMM-yyyy hh:mm:ss aa");
         String datetime = dateformat.format(c.getTime());
 
-        UserHistory uH = new UserHistory(dest.latitude, dest.longitude, datetime);
+        UserHistory uH = new UserHistory(dest.latitude, dest.longitude, datetime, price);
         mDatabaseReference.child(id).setValue(uH);
     }
 }

@@ -31,22 +31,21 @@ public class Payment extends AppCompatActivity {
         final LatLng latLng = new LatLng(Double.parseDouble(temp.get(0)), Double.parseDouble(temp.get(1)));
         final String key = temp.get(2);
 
-        Long totalTime = (((Long.parseLong(temp.get(4)) - Long.parseLong(temp.get(3)))/60000)*2);
+        final Long totalTime = (((Long.parseLong(temp.get(4)) - Long.parseLong(temp.get(3)))/60000)*2);
 
         CardForm cardFrom  = (CardForm)findViewById(R.id.cardform);
 
         TextView txtDes = (TextView) findViewById(R.id.payment_amount);
         Button btnpay = (Button) findViewById(R.id.btn_pay);
         txtDes.setText(totalTime.toString());
-        btnpay.setText(String.format("Payer %s",txtDes.getText()));
+        btnpay.setText(String.format("Payable Amount %s",txtDes.getText()));
         cardFrom.setPayBtnClickListner(new OnPayBtnClickListner() {
             @Override
             public void onClick(Card card) {
 
-                History.addToHistory(latLng);
-
-                BookSlot.freeSlot(latLng, key);
+                History.addToHistory(latLng, "$" + totalTime.toString());
                 startActivity(new Intent(Payment.this, MainActivity.class));
+                BookSlot.freeSlot(latLng, key);
                 Toast.makeText(Payment.this,"Number : "+ card.getNumber()+ " | CVC : " +card.getCVC(),Toast.LENGTH_SHORT).show();
             }
         });
