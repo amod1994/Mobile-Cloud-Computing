@@ -33,5 +33,6 @@ dependencies {
     compile 'com.google.firebase:firebase-auth:15.0.0'
     compile 'com.google.firebase:firebase-database:15.0.0'
     compile 'com.firebase:geofire-android:2.3.1'
+    compile 'me.dm7.barcodescanner:zxing:1.9'
 }
 apply plugin: 'com.google.gms.google-services'

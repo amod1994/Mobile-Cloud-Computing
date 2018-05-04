@@ -1,12 +1,15 @@
 package com.example.amodgandhe.smartparking;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.Uri;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 
 import android.support.v4.app.ActivityCompat;
@@ -24,6 +27,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.Toast;
 
 /*import com.firebase.geofire.GeoFire;
@@ -51,14 +55,19 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.zxing.Result;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 import javax.security.auth.callback.Callback;
 
+import me.dm7.barcodescanner.zxing.ZXingScannerView;
+
+import static android.Manifest.permission_group.CAMERA;
+
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback {
+        implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, ZXingScannerView.ResultHandler {
 
 
     GoogleMap mMap;
@@ -70,12 +79,20 @@ public class MainActivity extends AppCompatActivity
     private DatabaseReference mDatabaseReference;
     private DatabaseReference gDatabaseReference;
     private FusedLocationProviderClient mFusedLocationClient;
+    private ZXingScannerView scannerView;
+
+    private Button start;
+    private Button end;
 
     private static final int LOCATION_REQUEST = 500;
+    private static final int REQUEST_CAMERA = 1;
 
+    private Marker mMarker;
+    private String mKey;
     private LatLng myParkingSpot;
     private LatLng currentLoc;
     final ArrayList<String> nearByLoc = new ArrayList<>();
+    ArrayList<String> temp = new ArrayList<>();
     int radius = 1;
     String[] uRadius = {"1", "5", "10", "15", "50", "150"};
 
@@ -95,10 +112,17 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
+        start = (Button) findViewById(R.id.start);
+        start.setEnabled(false);
+        end = (Button) findViewById(R.id.end);
+        end.setEnabled(false);
+
         firebaseAuth = FirebaseAuth.getInstance();
+
         mDatabaseReference = FirebaseDatabase.getInstance().getReference("AllParkingSlots");
         gDatabaseReference = FirebaseDatabase.getInstance().getReference("GeoFire");
         geoFire = new GeoFire(gDatabaseReference);
+        scannerView = new ZXingScannerView(this);
 
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
@@ -137,13 +161,6 @@ public class MainActivity extends AppCompatActivity
                     }
                 });
 
-
-
-        /*Location location = locationManager.getLastKnownLocation(locationManager
-                .getBestProvider(criteria, false));*/
-        //currentLoc = new LatLng(location.getLatitude(), location.getLongitude());
-
-
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[] {android.Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_REQUEST);
             return;
@@ -159,7 +176,13 @@ public class MainActivity extends AppCompatActivity
             public boolean onMarkerClick(Marker marker) {
                 myParkingSpot = marker.getPosition();
                 String key = marker.getTag().toString();
-                confirmBooking(marker, key);
+
+                //myParkingSpot = new LatLng(marker.getPosition().latitude, marker.getPosition().longitude);
+
+                mMarker = marker;
+                mKey = key;
+                confirmBooking(mMarker, mKey);
+                start.setEnabled(true);
                 return false;
             }
         });
@@ -179,8 +202,8 @@ public class MainActivity extends AppCompatActivity
         .setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-
-                bookSlot(marker, key);
+                start.setEnabled(true);
+                //bookSlot(marker, key);
                 startNavigation.sendRequest(marker.getPosition());
             }
         });
@@ -193,41 +216,43 @@ public class MainActivity extends AppCompatActivity
         DatabaseReference temp = FirebaseDatabase.getInstance().getReference("AllParkingSlots").child(key);
         ParkingSlot update = new ParkingSlot(marker.getPosition().latitude, marker.getPosition().longitude, false);
         temp.setValue(update);
-
     }
 
     public void findNearBySpot(){
-        GeoQuery geoQuery = geoFire.queryAtLocation(new GeoLocation(currentLoc.latitude, currentLoc.longitude), radius);
-        geoQuery.addGeoQueryEventListener(new GeoQueryEventListener() {
-            LatLng pos;
-            @Override
-            public void onKeyEntered(String key, GeoLocation location) {
-                if(myParkingSpot == null)
-                    if(nearByLoc.contains(key)){
-                        addMarker(location, key);
+        if(currentLoc!=null) {
+            GeoQuery geoQuery = geoFire.queryAtLocation(new GeoLocation(currentLoc.latitude, currentLoc.longitude), radius);
+            geoQuery.addGeoQueryEventListener(new GeoQueryEventListener() {
+                LatLng pos;
+
+                @Override
+                public void onKeyEntered(String key, GeoLocation location) {
+                    if (myParkingSpot == null)
+                        if (nearByLoc.contains(key)) {
+                            addMarker(location, key);
+                        }
                 }
-            }
-            @Override
-            public void onKeyExited(String key) {
 
-            }
+                @Override
+                public void onKeyExited(String key) {
 
-            @Override
-            public void onKeyMoved(String key, GeoLocation location) {
+                }
 
-            }
+                @Override
+                public void onKeyMoved(String key, GeoLocation location) {
 
-            @Override
-            public void onGeoQueryReady() {
+                }
 
-            }
+                @Override
+                public void onGeoQueryReady() {
 
-            @Override
-            public void onGeoQueryError(DatabaseError error) {
+                }
 
-            }
-        });
+                @Override
+                public void onGeoQueryError(DatabaseError error) {
 
+                }
+            });
+        }
     }
 
     public void initialMarker() {
@@ -280,7 +305,61 @@ public class MainActivity extends AppCompatActivity
         alert11.show();
     }
 
+    public void startSession(View view){
+        start.setEnabled(false);
+        Double lat = mMarker.getPosition().latitude;
+        Double lng = mMarker.getPosition().longitude;
+        Long tm = System.currentTimeMillis();
+        temp.add(lat.toString());
+        temp.add(lng.toString());
+        temp.add(mKey);
+        ///////////////////
+        temp.add(tm.toString());
+        ////////////////
+        startActivity(new Intent(MainActivity.this, QRScanner.class).putExtra("slotDetails", temp));
+        end.setEnabled(true);
+    }
 
+    public void endSession(View view){
+        Double lat = mMarker.getPosition().latitude;
+        Double lng = mMarker.getPosition().longitude;
+        Long eTm = System.currentTimeMillis();
+
+        //temp.add(lat.toString());
+        //temp.add(lng.toString());
+        //temp.add(mKey);
+        temp.add(eTm.toString());
+        startActivity(new Intent(MainActivity.this, QRScanner.class).putExtra("slotDetails", temp));
+    }
+
+    @Override
+    public void handleResult(Result result) {
+        final String myResult = result.getText();
+        Log.d("QRCodeScanner", result.getText());
+        Log.d("QRCodeScanner", result.getBarcodeFormat().toString());
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Scan Result");
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                //scannerView.resumeCameraPreview(MainActivity.this);
+                //confirmBooking(mMarker, mKey);
+                bookSlot(mMarker, mKey);
+                startActivity(new Intent(getApplicationContext(), MainActivity.class));
+            }
+        });
+        builder.setNeutralButton("Visit", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(myResult));
+                startActivity(browserIntent);
+            }
+        });
+        builder.setMessage(result.getText());
+        AlertDialog alert1 = builder.create();
+        alert1.show();
+    }
 
     @SuppressLint("MissingPermission")
     @Override
@@ -298,6 +377,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onBackPressed() {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
@@ -369,4 +449,6 @@ public class MainActivity extends AppCompatActivity
         ParkingSlot ps2 = new ParkingSlot(40.907504, -73.108130, true);
         mDatabaseReference.child(id2).setValue(ps2);
     }
+
+
 }
