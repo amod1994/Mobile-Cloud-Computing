@@ -417,6 +417,7 @@ public class MainActivity extends AppCompatActivity
             Intent intent = new Intent(this, TimeSelect.class);
             startActivity(intent);
         } else if (id == R.id.nav_gallery) {
+            startActivity(new Intent(this, HistoryActivity.class));
 
         } else if (id == R.id.nav_slideshow) {
 
