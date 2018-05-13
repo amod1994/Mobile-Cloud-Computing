@@ -2,39 +2,50 @@ package com.example.amodgandhe.smartparking;
 
 import android.app.TimePickerDialog;
 import android.content.Intent;
-import android.os.CountDownTimer;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.TimePicker;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 
-public class TimeSelect extends AppCompatActivity {
+public class EndTimeSelect extends AppCompatActivity {
 
     TextView tv;
     Calendar currentTime;
-    int hour,minute;
+    int hour, minute;
     String Format;
     long hourSet;
     long minSet;
+    Long sTime;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_time_select);
+        setContentView(R.layout.activity_end_time_select);
+
+        android.support.v7.app.ActionBar actionbar = getSupportActionBar();
+        actionbar.setBackgroundDrawable(new ColorDrawable(Color.parseColor("#010000")));
+
+        Intent intent = getIntent();
+        sTime = intent.getLongExtra("startTime", 0);
+
+
 
         tv = (TextView) findViewById(R.id.textView4);
         currentTime = Calendar.getInstance();
         hour = currentTime.get(Calendar.HOUR_OF_DAY);
         minute = currentTime.get(Calendar.MINUTE);
         selectedTimeFormat(hour);
-        tv.setText(hour + " : " + minute );
+        tv.setText(hour + " : " + minute);
         tv.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                TimePickerDialog timePickerDialog = new TimePickerDialog(TimeSelect.this, new TimePickerDialog.OnTimeSetListener() {
+                TimePickerDialog timePickerDialog = new TimePickerDialog(EndTimeSelect.this, new TimePickerDialog.OnTimeSetListener() {
                     @Override
                     public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
                         selectedTimeFormat(hourOfDay);
@@ -50,46 +61,24 @@ public class TimeSelect extends AppCompatActivity {
     }
 
 
-
-
-    public void selectedTimeFormat(int hour){
-        if(hour==0){
+    public void selectedTimeFormat(int hour) {
+        if (hour == 0) {
             hour += 12;
             Format = "AM";
-        }
-        else if (hour ==12){
-            Format= "PM";
-
-        }
-        else if (hour > 12){
-            hour -=12;
+        } else if (hour == 12) {
             Format = "PM";
 
+        } else if (hour > 12) {
+            hour -= 12;
+            Format = "PM";
+
+        } else {
+            Format = "AM";
         }
-        else{
-            Format ="AM";
-        }
     }
 
-    public void payment(View view){
-        hourSet = hourSet*3600000;
-        minSet = minSet*60000;
-
-        setTimer((hourSet + minSet) - System.currentTimeMillis());
-
-        startActivity(new Intent(getApplicationContext(), Payment.class));
+    public void payment(View view) {
+        long tTime = ((hourSet * 3600000) + (minSet * 60000)) - sTime;
+        startActivity(new Intent(getApplicationContext(), PrePayment.class).putExtra("TotalTime", tTime));
     }
-
-    public void setTimer(long fTime){
-        new CountDownTimer(fTime, 1000000000) {
-
-            public void onTick(long millisUntilFinished) {
-            }
-
-            public void onFinish() {
-
-            }
-        }.start();
-    }
-
 }

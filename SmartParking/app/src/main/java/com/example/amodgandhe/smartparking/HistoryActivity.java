@@ -1,5 +1,7 @@
 package com.example.amodgandhe.smartparking;
 
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.location.Address;
 import android.location.Geocoder;
 import android.support.v7.app.AppCompatActivity;
@@ -36,7 +38,8 @@ public class HistoryActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_history);
 
-
+        android.support.v7.app.ActionBar actionbar = getSupportActionBar();
+        actionbar.setBackgroundDrawable(new ColorDrawable(Color.parseColor("#010000")));
         firebaseAuth = FirebaseAuth.getInstance();
         mDatabaseReference = FirebaseDatabase.getInstance().getReference("UserHistory").child(firebaseAuth.getUid());
         mDatabaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -59,15 +62,6 @@ public class HistoryActivity extends AppCompatActivity {
 
             }
         });
-
-/*        for (UserHistory booking : histories) {
-            try {
-                List<Address> addresses = geocoder.getFromLocation(booking.latitude, booking.longitude, 4);
-                //String loc = (addresses.get(0)).toString() + (addresses.get(1)).toString() + (addresses.get(2)).toString() + (addresses.get(3)).toString();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }*/
     }
 
     class CustomAdapter extends BaseAdapter{
@@ -100,8 +94,7 @@ public class HistoryActivity extends AppCompatActivity {
             for(UserHistory booking : histories){
                 try {
                     List<Address> addresses = geocoder.getFromLocation(booking.latitude, booking.longitude, 4);
-                    //String loc = (addresses.get(0).getAdminArea()).toString() + (addresses.get(1)).toString() + (addresses.get(2)).toString() + (addresses.get(3)).toString();
-                    String loc = addresses.get(0).getAdminArea();
+                    String loc = addresses.get(0).getAdminArea() + ", " + addresses.get(0).getLocality();
                     location.setText(loc);
                 } catch (IOException e) {
                     e.printStackTrace();

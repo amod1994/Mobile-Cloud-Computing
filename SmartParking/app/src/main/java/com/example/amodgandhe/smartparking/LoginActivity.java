@@ -1,6 +1,8 @@
 package com.example.amodgandhe.smartparking;
 
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -26,7 +28,8 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-
+        android.support.v7.app.ActionBar actionbar = getSupportActionBar();
+        actionbar.setBackgroundDrawable(new ColorDrawable(Color.parseColor("#010000")));
         loginEmail = (TextView) findViewById(R.id.lEmail);
         loginPass = (TextView) findViewById(R.id.lPassword);
         login = (Button) findViewById(R.id.login);

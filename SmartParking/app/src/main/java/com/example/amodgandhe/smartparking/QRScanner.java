@@ -13,6 +13,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Html;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -151,8 +152,9 @@ public class QRScanner extends AppCompatActivity implements ZXingScannerView.Res
                 key = temp.get(2);
 
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setTitle("Scan Result");
-                builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                builder.setTitle("Booking Confirmed");
+                builder.setMessage("Your slot has been confirmed. Kindly Scan QR code while exiting!");
+                builder.setPositiveButton(Html.fromHtml("<font color='#f5f5f5'>Got It!</font>"), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         BookSlot.bookSlot(latLng, key);
@@ -160,14 +162,14 @@ public class QRScanner extends AppCompatActivity implements ZXingScannerView.Res
 
                     }
                 });
-                builder.setNeutralButton("Visit", new DialogInterface.OnClickListener() {
+                /*builder.setNeutralButton("Visit", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(myResult));
                         startActivity(browserIntent);
                     }
-                });
-                builder.setMessage(result.getText());
+                });*/
+                //builder.setMessage(result.getText());
                 AlertDialog alert1 = builder.create();
                 alert1.show();
             }else {

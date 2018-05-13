@@ -1,34 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
     android:layout_height="match_parent">
 
 
     <TextView
         android:id="@+id/location"
         android:layout_width="310dp"
-        android:layout_height="42dp"
+        android:layout_height="31dp"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="30dp"
-        android:text="TextView" />
+        android:text="TextView"
+        android:textColor="#FFFEFEFE" />
 
     <TextView
         android:id="@+id/time"
-        android:layout_width="157dp"
+        android:layout_width="208dp"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_alignStart="@+id/location"
-        android:layout_marginTop="81dp"
+        android:layout_marginTop="72dp"
         android:text="TextView"
-        android:layout_alignLeft="@+id/location" />
+        android:textColor="#8d0808" />
 
     <TextView
         android:id="@+id/price"
-        android:layout_width="116dp"
-        android:layout_height="29dp"
+        android:layout_width="84dp"
+        android:layout_height="21dp"
         android:layout_alignEnd="@+id/location"
-        android:layout_alignRight="@+id/location"
-        android:layout_alignTop="@+id/textView5"
-        android:text="TextView" />
+        android:layout_alignTop="@+id/time"
+        android:layout_marginEnd="1dp"
+        android:text="TextView"
+        android:textColor="#FFFEFEFE" />
 </RelativeLayout>

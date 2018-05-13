@@ -1,17 +1,19 @@
 package com.example.amodgandhe.smartparking;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.Uri;
-import android.provider.Settings;
+import android.os.Build;
 import android.support.annotation.NonNull;
 
+import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentManager;
 import android.content.Intent;
@@ -23,12 +25,14 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.Html;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.Toast;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 /*import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
@@ -57,14 +61,9 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.zxing.Result;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 
-import javax.security.auth.callback.Callback;
-
 import me.dm7.barcodescanner.zxing.ZXingScannerView;
-
-import static android.Manifest.permission_group.CAMERA;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, ZXingScannerView.ResultHandler {
@@ -83,6 +82,7 @@ public class MainActivity extends AppCompatActivity
 
     private Button start;
     private Button end;
+    private Button mRadius;
 
     private static final int LOCATION_REQUEST = 500;
     private static final int REQUEST_CAMERA = 1;
@@ -93,9 +93,10 @@ public class MainActivity extends AppCompatActivity
     private LatLng currentLoc;
     final ArrayList<String> nearByLoc = new ArrayList<>();
     ArrayList<String> temp = new ArrayList<>();
-    int radius = 1;
+    int radius = 5;
     String[] uRadius = {"1", "5", "10", "15", "50", "150"};
 
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -111,7 +112,32 @@ public class MainActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+        android.support.v7.app.ActionBar actionbar = getSupportActionBar();
+        actionbar.setBackgroundDrawable(new ColorDrawable(Color.parseColor("#010000")));
+        //Drawable myImage = getResources().getDrawable(R.drawable.ic_user);
 
+
+        if (navigationView != null) {
+            Menu menu = navigationView.getMenu();
+            menu.findItem(R.id.nav_camera).setTitle("Pre Book");
+            menu.findItem(R.id.nav_gallery).setTitle("My Bookings");
+            menu.findItem(R.id.nav_slideshow).setVisible(false);//In case you want to remove menu item
+            menu.findItem(R.id.nav_manage).setVisible(false);//In case you want to remove menu item
+            navigationView.setNavigationItemSelectedListener(this);
+
+            View hView =  navigationView.getHeaderView(0);
+            ImageView imgvw = (ImageView)hView.findViewById(R.id.imageView);
+            TextView tv = (TextView)hView.findViewById(R.id.textview);
+            TextView tv1 = (TextView)hView.findViewById(R.id.textView);
+            imgvw.setImageResource(R.drawable.ic_user);
+            tv.setText("Amod Gandhe");
+            tv.setTextColor(Color.parseColor("#FF525252"));
+            tv1.setText("amodgandhes@gmail.com");
+            tv1.setTextColor(Color.parseColor("#FF525252"));
+            navigationView.setBackgroundColor(Color.parseColor("#f5f5f5"));
+        }
+
+        mRadius = (Button) findViewById(R.id.button);
         start = (Button) findViewById(R.id.start);
         start.setEnabled(false);
         end = (Button) findViewById(R.id.end);
@@ -192,14 +218,8 @@ public class MainActivity extends AppCompatActivity
         final Navigation startNavigation  = new Navigation(this, currentLoc, mMap);
         AlertDialog.Builder confirmBuilder = new AlertDialog.Builder(MainActivity.this);
         confirmBuilder.setTitle("Confirm Slot")
-        .setMessage("Do you want to reserve this slot for you?")
-        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                return;
-            }
-        })
-        .setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
+        .setMessage("Please Start your Time! Scan QR code at Entry Point.")
+        .setPositiveButton(Html.fromHtml("<font color='#f5f5f5'>Got It!</font>"), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 start.setEnabled(true);
@@ -209,6 +229,7 @@ public class MainActivity extends AppCompatActivity
         });
         AlertDialog alert1D = confirmBuilder.create();
         alert1D.show();
+        alert1D.getWindow().setBackgroundDrawable(new ColorDrawable(Color.parseColor("#FF7B7B7B")));
     }
 
     public void bookSlot(Marker marker, String key){
@@ -292,7 +313,7 @@ public class MainActivity extends AppCompatActivity
 
     public void setRadius(View view){
         AlertDialog.Builder mBuilder = new AlertDialog.Builder(MainActivity.this);
-        mBuilder.setTitle("Select desired area radius");
+        mBuilder.setTitle(Html.fromHtml("<font color='#f5f5f5'>Select desired area radius</font>"));
         mBuilder.setItems(uRadius, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -303,8 +324,10 @@ public class MainActivity extends AppCompatActivity
         });
         AlertDialog alert11 = mBuilder.create();
         alert11.show();
+        alert11.getWindow().setBackgroundDrawable(new ColorDrawable(Color.parseColor("#FF7B7B7B")));
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     public void startSession(View view){
         start.setEnabled(false);
         Double lat = mMarker.getPosition().latitude;
@@ -414,7 +437,7 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         if (id == R.id.nav_camera) {
-            Intent intent = new Intent(this, TimeSelect.class);
+            Intent intent = new Intent(this, StartTimeSelect.class);
             startActivity(intent);
         } else if (id == R.id.nav_gallery) {
             startActivity(new Intent(this, HistoryActivity.class));
@@ -436,19 +459,101 @@ public class MainActivity extends AppCompatActivity
 
 
     public void populateDatabase(){
-        String id = mDatabaseReference.push().getKey();
+        /*String id = mDatabaseReference.push().getKey();
         String id1 = mDatabaseReference.push().getKey();
-        String id2 = mDatabaseReference.push().getKey();
+        String id2 = mDatabaseReference.push().getKey();*/
+        String id3 = mDatabaseReference.push().getKey();
+        String id4 = mDatabaseReference.push().getKey();
+        String id5 = mDatabaseReference.push().getKey();
+        String id6 = mDatabaseReference.push().getKey();
+        String id7 = mDatabaseReference.push().getKey();
+        String id8 = mDatabaseReference.push().getKey();
+        String id9 = mDatabaseReference.push().getKey();
+        String id10 = mDatabaseReference.push().getKey();
 
-        ParkingSlot ps = new ParkingSlot(40.896227, -73.127687, true);
+
+        /*ParkingSlot ps = new ParkingSlot(40.896227, -73.127687, true);
         mDatabaseReference.child(id).setValue(ps);
-
 
         ParkingSlot ps1 = new ParkingSlot(40.896397, -73.127650, true);
         mDatabaseReference.child(id1).setValue(ps1);
 
         ParkingSlot ps2 = new ParkingSlot(40.907504, -73.108130, true);
-        mDatabaseReference.child(id2).setValue(ps2);
+        mDatabaseReference.child(id2).setValue(ps2);*/
+
+        ParkingSlot ps3 = new ParkingSlot(40.88308522083045, -73.0991649, true);
+        mDatabaseReference.child(id3).setValue(ps3);
+        geoFire.setLocation(id3, new GeoLocation(40.88308522083045, -73.0991649), new GeoFire.CompletionListener() {
+            @Override
+            public void onComplete(String key, DatabaseError error) {
+            }
+        });
+        geoFire.setLocation(id3, new GeoLocation(40.88308522083045, -73.0991649), new GeoFire.CompletionListener() {
+            @Override
+            public void onComplete(String key, DatabaseError error) {
+
+            }
+        });
+
+        ParkingSlot ps4 = new ParkingSlot(40.863144, -73.082159, true);
+        mDatabaseReference.child(id4).setValue(ps4);
+        geoFire.setLocation(id4, new GeoLocation(40.863144, -73.082159), new GeoFire.CompletionListener() {
+            @Override
+            public void onComplete(String key, DatabaseError error) {
+            }
+        });
+
+        ParkingSlot ps5 = new ParkingSlot(40.8527737, -73.185768, true);
+        mDatabaseReference.child(id5).setValue(ps5);
+        geoFire.setLocation(id5, new GeoLocation(40.8527737, -73.185768), new GeoFire.CompletionListener() {
+            @Override
+            public void onComplete(String key, DatabaseError error) {
+            }
+        });
+
+        ParkingSlot ps6 = new ParkingSlot(40.856837, -73.188585, true);
+        mDatabaseReference.child(id6).setValue(ps6);
+        geoFire.setLocation(id6, new GeoLocation(40.856837, -73.188585), new GeoFire.CompletionListener() {
+            @Override
+            public void onComplete(String key, DatabaseError error) {
+            }
+        });
+
+        ParkingSlot ps7 = new ParkingSlot(40.849949, -73.185611, true);
+        mDatabaseReference.child(id7).setValue(ps7);
+        geoFire.setLocation(id7, new GeoLocation(40.849949, -73.185611), new GeoFire.CompletionListener() {
+            @Override
+            public void onComplete(String key, DatabaseError error) {
+
+            }
+        });
+
+        ParkingSlot ps8 = new ParkingSlot(40.864977, -73.130149, true);
+        mDatabaseReference.child(id8).setValue(ps8);
+        geoFire.setLocation(id8, new GeoLocation(40.864977, -73.130149), new GeoFire.CompletionListener() {
+            @Override
+            public void onComplete(String key, DatabaseError error) {
+
+            }
+        });
+
+        ParkingSlot ps9 = new ParkingSlot(40.74904512, -73.51868391, true);
+        mDatabaseReference.child(id9).setValue(ps9);
+        geoFire.setLocation(id9, new GeoLocation(40.74904512, -73.51868391), new GeoFire.CompletionListener() {
+            @Override
+            public void onComplete(String key, DatabaseError error) {
+
+            }
+        });
+
+        ParkingSlot ps10 = new ParkingSlot(40.74787979, -73.51745187, true);
+        mDatabaseReference.child(id10).setValue(ps10);
+        geoFire.setLocation(id10, new GeoLocation(40.74787979, -73.51745187), new GeoFire.CompletionListener() {
+            @Override
+            public void onComplete(String key, DatabaseError error) {
+
+            }
+        });
     }
 
 

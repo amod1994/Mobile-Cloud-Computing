@@ -13,32 +13,22 @@ import com.craftman.cardform.Card;
 import com.craftman.cardform.CardForm;
 import com.craftman.cardform.OnPayBtnClickListner;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.ArrayList;
 
-public class Payment extends AppCompatActivity {
-
-    ArrayList<String> temp;
+public class PrePayment extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_payment);
-
-        Intent intent = getIntent();
+        setContentView(R.layout.activity_pre_payment);
 
         android.support.v7.app.ActionBar actionbar = getSupportActionBar();
         actionbar.setBackgroundDrawable(new ColorDrawable(Color.parseColor("#010000")));
 
-        temp = new ArrayList<>();
-        temp = intent.getStringArrayListExtra("slotDetails");
+        Intent intent = getIntent();
 
-        final LatLng latLng = new LatLng(Double.parseDouble(temp.get(0)), Double.parseDouble(temp.get(1)));
-        final String key = temp.get(2);
-
-        final Long totalTime = (((Long.parseLong(temp.get(4)) - Long.parseLong(temp.get(3)))/60000)*2);
-
+        final Long totalTime = ((intent.getLongExtra("TotalTime", 0)/60000)*10);
         CardForm cardFrom  = (CardForm)findViewById(R.id.cardform);
 
         TextView txtDes = (TextView) findViewById(R.id.payment_amount);
@@ -51,14 +41,8 @@ public class Payment extends AppCompatActivity {
         cardFrom.setPayBtnClickListner(new OnPayBtnClickListner() {
             @Override
             public void onClick(Card card) {
-
-                if(totalTime!=0) {
-                    History.addToHistory(latLng, "$" + totalTime.toString());
-                }else
-                    History.addToHistory(latLng, "$" + "10");
-                startActivity(new Intent(Payment.this, MainActivity.class));
-                BookSlot.freeSlot(latLng, key);
-                Toast.makeText(Payment.this,"Thank You for Visiting us!",Toast.LENGTH_LONG).show();
+                startActivity(new Intent(PrePayment.this, MainActivity.class));
+                Toast.makeText(PrePayment.this,"See You There!",Toast.LENGTH_SHORT).show();
             }
         });
     }
